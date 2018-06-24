@@ -37,8 +37,8 @@ const styles = theme => ({
         },
     },
     header: {
-        height: 250,
-        width: 250,
+        height: 249,
+        width: 249,
     },
     logo: {
         height: 200,
@@ -47,13 +47,13 @@ const styles = theme => ({
     content: {
         flexGrow: 1,
         backgroundColor: theme.palette.background.default,
-        padding: theme.spacing.unit * 3,
-        [theme.breakpoints.up('md')]: {
-            padding: theme.spacing.unit * 10,
-        },
     },
     card: {
         textAlign: 'left',
+        margin:theme.spacing.unit * 3,
+        [theme.breakpoints.up('md')]: {
+            margin: theme.spacing.unit * 10,
+        },
     },
     cardAction: {
         position: 'relative'
@@ -68,10 +68,6 @@ const styles = theme => ({
 })
 
 class Home extends Component {
-    constructor(props){
-        super(props);
-    }
-
     state = {
         mobileOpen: false,
         title: 'GoBlog',
@@ -96,7 +92,6 @@ class Home extends Component {
             }else{
                 this.setState({tag: '0',category:0})
             }
-            console.log(url)
             this.getArticles(url)
         }
     }
