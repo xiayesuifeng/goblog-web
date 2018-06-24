@@ -68,6 +68,10 @@ const styles = theme => ({
 })
 
 class Home extends Component {
+    constructor(props){
+        super(props);
+    }
+
     state = {
         mobileOpen: false,
         title: 'GoBlog',
@@ -76,6 +80,25 @@ class Home extends Component {
         articles: [],
         category: 0,
         tag: ''
+    }
+
+    componentWillReceiveProps (nextProps, nextContext) {
+        if (nextProps !== this.props) {
+            let url = '/api/article'
+            if (nextProps.match.params.type !== undefined) {
+                if (nextProps.match.params.type === 'category') {
+                    url = '/api/article/category/' + nextProps.match.params.id
+                    this.setState({category: parseInt(nextProps.match.params.id),tag:''})
+                } else if (nextProps.match.params.type === 'tag') {
+                    url = '/api/tag/' + nextProps.match.params.id
+                    this.setState({tag: nextProps.match.params.id,category:0})
+                }
+            }else{
+                this.setState({tag: '0',category:0})
+            }
+            console.log(url)
+            this.getArticles(url)
+        }
     }
 
     componentWillMount () {
@@ -93,9 +116,19 @@ class Home extends Component {
                 if (r.data.code === 0)
                     this.setState({tags: r.data.tags})
             })
-        axios.get('/api/article')
+        this.getArticles('/api/article')
+    }
+
+
+    handleDrawerToggle = () => {
+        this.setState({mobileOpen: !this.state.mobileOpen})
+    }
+
+    getArticles(url) {
+        axios.get(url)
             .then(r => {
                 if (r.data.code === 0) {
+                    this.setState({articles:[]})
                     let articles = r.data.articles
                     for (let i = 0; i < articles.length; i++) {
                         axios.get('/api/article/uuid/' + articles[i].Uuid + '/description')
@@ -111,10 +144,6 @@ class Home extends Component {
                     }
                 }
             })
-    }
-
-    handleDrawerToggle = () => {
-        this.setState({mobileOpen: !this.state.mobileOpen})
     }
 
     render () {
