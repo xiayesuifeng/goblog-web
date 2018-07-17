@@ -3,6 +3,7 @@ import './index.css';
 import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
+import Article from './pages/Article'
 import {CssBaseline} from "@material-ui/core/index.es";
 import {Route, Switch} from "react-router-dom";
 
@@ -14,6 +15,7 @@ class App extends Component {
             <Switch>
                 <Route path="/admin" component={Admin}/>
                 <Route path="/login" component={Login}/>
+                <Route path="/article/:id" component={Article}/>
                 <Route path="/:type/:id" component={Home}/>
                 <Route path="/" component={Home}/>
             </Switch>
