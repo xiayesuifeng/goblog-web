@@ -247,7 +247,7 @@ class Home extends Component {
                                 <CardActions className={classes.cardAction}>
                                     <Button size="small" color="primary" component={Link}
                                             to={'/category/' + article.category_id}>归类于 {this.state.categories[article.category_id - 1].name}</Button>
-                                    <Button size="small" color="primary" className={classes.readArticle}>阅读全文</Button>
+                                    <Button size="small" color="primary" className={classes.readArticle} component={Link} to={"/article/"+article.ID}>阅读全文</Button>
                                 </CardActions>
                             </Card>
                         )
