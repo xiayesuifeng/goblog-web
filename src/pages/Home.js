@@ -3,6 +3,7 @@ import logo from '../logo.svg'
 import { withStyles } from '@material-ui/core/styles'
 import PropTypes from 'prop-types'
 import MenuIcon from '@material-ui/icons/Menu'
+import AddIcon from '@material-ui/icons/Add'
 import ShareIcon from '@material-ui/icons/Share'
 import {
     Drawer,
@@ -19,6 +20,7 @@ import {
 } from '@material-ui/core/index.es'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
+import Cookies from 'js-cookie'
 
 const styles = theme => ({
     root: {
@@ -64,6 +66,12 @@ const styles = theme => ({
     readArticle: {
         position: 'absolute',
         right: 10
+    },
+    addFAB: {
+        zIndex: 99999,
+        position: 'fixed',
+        bottom: theme.spacing.unit * 3,
+        right: theme.spacing.unit * 3
     }
 })
 
@@ -75,7 +83,8 @@ class Home extends Component {
         tags: [],
         articles: [],
         category: 0,
-        tag: ''
+        tag: '',
+        login:false
     }
 
     componentWillReceiveProps (nextProps, nextContext) {
@@ -97,6 +106,8 @@ class Home extends Component {
     }
 
     componentWillMount () {
+        this.setState({login:(Cookies.get('goblog-session')!==undefined)})
+
         axios.get('/api/name')
             .then(r => {
                 this.setState({title: r.data})
@@ -252,6 +263,9 @@ class Home extends Component {
                             </Card>
                         )
                     })}
+                    <Button variant="fab" color="primary" aria-label="add" className={classes.addFAB} component={Link} to={"/articleEditor"}>
+                        <AddIcon />
+                    </Button>
                 </main>
             </div>
         )
