@@ -11,7 +11,6 @@ import DeleteIcon from '@material-ui/icons/Delete'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
 import Cookies from 'js-cookie'
-import MenuIcon from '@material-ui/icons/Menu'
 
 const styles = theme => ({
     toolbar: theme.mixins.toolbar,
@@ -105,7 +104,6 @@ class Article extends Component {
                         })
                     this.setState({article: r.data.article})
                 }
-                console.log(r.data.article)
             })
     }
 
@@ -186,7 +184,7 @@ class Article extends Component {
                 <Paper className={classes.article}>
                     <div className={classes.header}>
                         <Avatar aria-label="Recipe" className={classes.avatar}>
-                            {this.state.category}
+                            {this.state.article.tag}
                         </Avatar>
                         <div className={classes.headerInfo}>
                             <div className={classes.info}>
@@ -194,7 +192,7 @@ class Article extends Component {
                                 <span>发布于 {this.state.article.CreatedAt}</span>
                             </div>
                             <div className={classes.info}>
-                                <span>{this.state.article.tag}</span>
+                                <span>归类于 {this.state.category?this.state.category:'已删除的分类'}</span>
                                 <span>更新于 {this.state.article.UpdatedAt}</span>
                             </div>
                         </div>
