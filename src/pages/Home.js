@@ -16,11 +16,26 @@ import {
     ListItemText,
     MenuItem,
     MenuList,
-    Card, CardContent, CardActions, Button, CardHeader, Avatar
-} from '@material-ui/core/index.es'
+    Card, CardContent, CardActions, Button, CardHeader, Avatar, TextField, Snackbar
+} from '@material-ui/core'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
 import Cookies from 'js-cookie'
+import SpeedDial from '@material-ui/lab/SpeedDial'
+import SpeedDialIcon from '@material-ui/lab/SpeedDialIcon'
+import SpeedDialAction from '@material-ui/lab/SpeedDialAction'
+import CategoryIcon from '@material-ui/icons/Category'
+import DeleteIcon from '@material-ui/icons/Delete'
+import EditIcon from '@material-ui/icons/Edit'
+import DoneIcon from '@material-ui/icons/Done'
+import Dialog from '@material-ui/core/Dialog/Dialog'
+import DialogTitle from '@material-ui/core/DialogTitle/DialogTitle'
+import DialogContent from '@material-ui/core/DialogContent/DialogContent'
+import DialogActions from '@material-ui/core/DialogActions/DialogActions'
+import List from '@material-ui/core/List/List'
+import ListItem from '@material-ui/core/ListItem/ListItem'
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction/ListItemSecondaryAction'
+import InputAdornment from '@material-ui/core/InputAdornment/InputAdornment'
 
 const styles = theme => ({
     root: {
@@ -52,7 +67,7 @@ const styles = theme => ({
     },
     card: {
         textAlign: 'left',
-        margin:theme.spacing.unit * 3,
+        margin: theme.spacing.unit * 3,
         [theme.breakpoints.up('md')]: {
             margin: theme.spacing.unit * 10,
         },
@@ -72,19 +87,25 @@ const styles = theme => ({
         position: 'fixed',
         bottom: theme.spacing.unit * 3,
         right: theme.spacing.unit * 3
-    }
+    },
 })
 
 class Home extends Component {
     state = {
         mobileOpen: false,
+        dialogOpen: false,
+        speedDialOpen: false,
+        snackBarOpen: false,
         title: 'GoBlog',
+        message: '',
         categories: [],
         tags: [],
         articles: [],
         category: 0,
+        addCategory: '',
+        editID: -1,
         tag: '',
-        login:false
+        login: false
     }
 
     componentWillReceiveProps (nextProps, nextContext) {
@@ -93,29 +114,24 @@ class Home extends Component {
             if (nextProps.match.params.type !== undefined) {
                 if (nextProps.match.params.type === 'category') {
                     url = '/api/article/category/' + nextProps.match.params.id
-                    this.setState({category: parseInt(nextProps.match.params.id),tag:''})
+                    this.setState({category: parseInt(nextProps.match.params.id), tag: ''})
                 } else if (nextProps.match.params.type === 'tag') {
                     url = '/api/tag/' + nextProps.match.params.id
-                    this.setState({tag: nextProps.match.params.id,category:0})
+                    this.setState({tag: nextProps.match.params.id, category: 0})
                 }
-            }else{
-                this.setState({tag: '0',category:0})
+            } else {
+                this.setState({tag: '0', category: 0})
             }
             this.getArticles(url)
         }
     }
 
     componentWillMount () {
-        this.setState({login:(Cookies.get('goblog-session')!==undefined)})
+        this.setState({login: (Cookies.get('goblog-session') !== undefined)})
 
         axios.get('/api/name')
             .then(r => {
                 this.setState({title: r.data})
-            })
-        axios.get('/api/category')
-            .then(r => {
-                if (r.data.code === 0)
-                    this.setState({categories: r.data.categorys})
             })
         axios.get('/api/tag')
             .then(r => {
@@ -123,18 +139,18 @@ class Home extends Component {
                     this.setState({tags: r.data.tags})
             })
         this.getArticles('/api/article')
+        this.getCategories()
     }
-
 
     handleDrawerToggle = () => {
         this.setState({mobileOpen: !this.state.mobileOpen})
     }
 
-    getArticles(url) {
+    getArticles (url) {
         axios.get(url)
             .then(r => {
                 if (r.data.code === 0) {
-                    this.setState({articles:[]})
+                    this.setState({articles: []})
                     let articles = r.data.articles
                     for (let i = 0; i < articles.length; i++) {
                         axios.get('/api/article/uuid/' + articles[i].Uuid + '/description')
@@ -152,8 +168,81 @@ class Home extends Component {
             })
     }
 
+    getCategories () {
+        axios.get('/api/category')
+            .then(r => {
+                if (r.data.code === 0)
+                    this.setState({categories: r.data.categorys})
+            })
+    }
+
+    handleClick = () => {
+        this.setState(state => ({
+            speedDialOpen: !state.speedDialOpen,
+        }))
+    }
+
+    handleOpen = () => {
+        if (this.state.login) {
+            this.setState({speedDialOpen: true})
+        }
+    }
+
+    handleClose = () => {
+        this.setState({speedDialOpen: false})
+    }
+
+    addCategory = () => {
+        if (this.state.addCategory !== '') {
+            axios.post('/api/category', {
+                'name': this.state.addCategory
+            })
+                .then(r => {
+                    if (r.data.code === 0) {
+                        this.setState({snackBarOpen: true, message: '添加成功', addCategory: ''})
+                        this.getCategories()
+                    } else
+                        this.setState({snackBarOpen: true, message: '错误:' + r.data.message})
+                })
+        }
+    }
+
+    delCategory = id => () => {
+        axios.delete('/api/category/' + id)
+            .then(r => {
+                if (r.data.code === 0) {
+                    this.setState({snackBarOpen: true, message: '删除成功'})
+                    this.getCategories()
+
+                } else
+                    this.setState({snackBarOpen: true, message: '错误:' + r.data.message})
+            })
+    }
+
+    editCategory = () => {
+        axios.put('/api/category/' + this.state.editID, {
+            'name': this.state.addCategory
+        })
+            .then(r => {
+                if (r.data.code === 0) {
+                    this.setState({snackBarOpen: true, message: '编辑成功', addCategory: '', editID: -1})
+                    this.getCategories()
+                } else
+                    this.setState({snackBarOpen: true, message: '错误:' + r.data.message})
+            })
+    }
+
+    handleEdit = category => () => {
+        this.setState({editID: category.ID, addCategory: category.name})
+    }
+
     render () {
         const {classes} = this.props
+
+        let isTouch
+        if (typeof document !== 'undefined') {
+            isTouch = 'ontouchstart' in document.documentElement
+        }
 
         const drawer = (
             <div>
@@ -191,8 +280,69 @@ class Home extends Component {
             </div>
         )
 
+        const categoryDialog = (
+            <Dialog
+                // fullScreen={fullScreen}
+                open={this.state.dialogOpen}
+                onClose={this.handleClose}
+                aria-labelledby="dialog-title"
+            >
+                <DialogTitle id="dialog-title">{'分类管理'}</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        id="category"
+                        label='分类名'
+                        type="text"
+                        value={this.state.addCategory}
+                        onChange={e => this.setState({addCategory: e.target.value})}
+                        margin="normal"
+                        InputProps={{
+                            endAdornment: <InputAdornment position="start">
+                                {this.state.editID === -1 ?
+                                    <IconButton onClick={this.addCategory}>
+                                        <AddIcon/>
+                                    </IconButton>
+                                    :
+                                    <IconButton onClick={this.editCategory}>
+                                        <DoneIcon/>
+                                    </IconButton>
+                                }
+                            </InputAdornment>,
+                        }}
+                    />
+                    <List>
+                        {this.state.categories.map(category => {
+                                return (
+                                    <ListItem>
+                                        <ListItemText
+                                            primary={category.name}
+                                            secondary={'ID:' + category.ID}
+                                        />
+                                        <ListItemSecondaryAction>
+                                            <IconButton onClick={this.handleEdit(category)}>
+                                                <EditIcon/>
+                                            </IconButton>
+                                            <IconButton onClick={this.delCategory(category.ID)}>
+                                                <DeleteIcon/>
+                                            </IconButton>
+                                        </ListItemSecondaryAction>
+                                    </ListItem>
+                                )
+                            }
+                        )}
+                    </List>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => this.setState({dialogOpen: false})} color="primary" autoFocus>
+                        关闭
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        )
+
         return (
             <div className={classes.root}>
+                {categoryDialog}
                 <Hidden mdUp>
                     <AppBar>
                         <Toolbar>
@@ -231,7 +381,20 @@ class Home extends Component {
                         {drawer}
                     </Drawer>
                 </Hidden>
-                <main className={classes.content}>
+                <main className={classes.content}>'
+                    <Snackbar
+                        anchorOrigin={{
+                            vertical: 'top',
+                            horizontal: 'right',
+                        }}
+                        open={this.state.snackBarOpen}
+                        autoHideDuration={3000}
+                        onClose={() => this.setState({snackBarOpen: false})}
+                        ContentProps={{
+                            'aria-describedby': 'message-id',
+                        }}
+                        message={<span id="message-id">{this.state.message}</span>}
+                    />
                     <Hidden mdUp>
                         <div className={classes.toolbar}/>
                     </Hidden>
@@ -258,14 +421,40 @@ class Home extends Component {
                                 <CardActions className={classes.cardAction}>
                                     <Button size="small" color="primary" component={Link}
                                             to={'/category/' + article.category_id}>归类于 {this.state.categories[article.category_id - 1].name}</Button>
-                                    <Button size="small" color="primary" className={classes.readArticle} component={Link} to={"/article/"+article.ID}>阅读全文</Button>
+                                    <Button size="small" color="primary" className={classes.readArticle}
+                                            component={Link} to={'/article/' + article.ID}>阅读全文</Button>
                                 </CardActions>
                             </Card>
                         )
                     })}
-                    <Button variant="fab" color="primary" aria-label="add" className={classes.addFAB} component={Link} to={"/articleEditor"}>
-                        <AddIcon />
-                    </Button>
+                    <SpeedDial
+                        ariaLabel="SpeedDial"
+                        className={classes.addFAB}
+                        hidden={!this.state.login}
+                        icon={<SpeedDialIcon/>}
+                        onBlur={this.handleClose}
+                        onClick={this.handleClick}
+                        onClose={this.handleClose}
+                        onFocus={isTouch ? undefined : this.handleOpen}
+                        onMouseEnter={isTouch ? undefined : this.handleOpen}
+                        onMouseLeave={this.handleClose}
+                        open={this.state.speedDialOpen}
+                    >
+                        <SpeedDialAction
+                            icon={<CategoryIcon />}
+                            tooltipTitle="分类"
+                            onClick={() => this.setState({dialogOpen: true, speedDialOpen: false})}
+                        />
+                        <SpeedDialAction
+                            icon={<AddIcon/>}
+                            tooltipTitle="添加"
+                            onClick={() => this.props.history.push('/articleEditor')}
+                        />
+                    </SpeedDial>
+                    {/*{this.state.login &&*/}
+                    {/*<Button variant="fab" color="primary" aria-label="add" className={classes.addFAB} component={Link} to={"/articleEditor"}>*/}
+                    {/*<AddIcon />*/}
+                    {/*</Button>}*/}
                 </main>
             </div>
         )
