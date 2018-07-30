@@ -176,6 +176,14 @@ class Home extends Component {
             })
     }
 
+    getCategory(id) {
+        for (let i = 0; i < this.state.categories.length; i++) {
+            if (this.state.categories[i].ID === id)
+                return this.state.categories[i].name
+        }
+        return '已删除的分类'
+    }
+
     handleClick = () => {
         this.setState(state => ({
             speedDialOpen: !state.speedDialOpen,
@@ -420,7 +428,7 @@ class Home extends Component {
                                 </CardContent>
                                 <CardActions className={classes.cardAction}>
                                     <Button size="small" color="primary" component={Link}
-                                            to={'/category/' + article.category_id}>归类于 {this.state.categories[article.category_id - 1].name}</Button>
+                                            to={'/category/' + article.category_id}>归类于 {this.getCategory(article.category_id)}</Button>
                                     <Button size="small" color="primary" className={classes.readArticle}
                                             component={Link} to={'/article/' + article.ID}>阅读全文</Button>
                                 </CardActions>
