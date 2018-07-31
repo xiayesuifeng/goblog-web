@@ -11,6 +11,7 @@ import DeleteIcon from '@material-ui/icons/Delete'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
 import Cookies from 'js-cookie'
+import TuiEditorViewer from '../component/TuiEditorViewer'
 
 const styles = theme => ({
     toolbar: theme.mixins.toolbar,
@@ -80,6 +81,7 @@ class Article extends Component {
         article: {},
         category: '',
         html: '',
+        markdown:'',
         open: false,
         hidden: false,
         snackBarOpen: false,
@@ -92,10 +94,10 @@ class Article extends Component {
         axios.get('/api/article/id/' + this.props.match.params.id)
             .then(r => {
                 if (r.data.code === 0) {
-                    axios.get('/api/article/uuid/' + r.data.article.Uuid + '/html')
+                    axios.get('/api/article/uuid/' + r.data.article.Uuid + '/markdown')
                         .then(r => {
                             if (r.data.code === 0)
-                                this.setState({html: r.data.html})
+                                this.setState({markdown: r.data.markdown})
                         })
                     axios.get('/api/category/' + r.data.article.category_id)
                         .then(r => {
@@ -197,7 +199,9 @@ class Article extends Component {
                             </div>
                         </div>
                     </div>
-                    <div className={classes.context} dangerouslySetInnerHTML={{__html: this.state.html}}/>
+                    <div className={classes.context}>
+                        <TuiEditorViewer value={this.state.markdown}/>
+                    </div>
                 </Paper>
                 {this.state.login &&
                     <SpeedDial
