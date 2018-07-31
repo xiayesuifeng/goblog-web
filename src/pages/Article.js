@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import { withStyles } from '@material-ui/core/styles/index'
+import { withStyles } from '@material-ui/core/styles'
 import { Avatar, IconButton, Paper, Tooltip, Hidden, Snackbar, Toolbar, Typography, AppBar } from '@material-ui/core'
 import SpeedDial from '@material-ui/lab/SpeedDial'
 import SpeedDialIcon from '@material-ui/lab/SpeedDialIcon'
@@ -80,7 +80,6 @@ class Article extends Component {
     state = {
         article: {},
         category: '',
-        html: '',
         markdown:'',
         open: false,
         hidden: false,
