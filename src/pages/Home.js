@@ -28,6 +28,7 @@ import CategoryIcon from '@material-ui/icons/Category'
 import DeleteIcon from '@material-ui/icons/Delete'
 import EditIcon from '@material-ui/icons/Edit'
 import DoneIcon from '@material-ui/icons/Done'
+import ExitToAppIcon from '@material-ui/icons/ExitToApp'
 import Dialog from '@material-ui/core/Dialog/Dialog'
 import DialogTitle from '@material-ui/core/DialogTitle/DialogTitle'
 import DialogContent from '@material-ui/core/DialogContent/DialogContent'
@@ -175,7 +176,7 @@ class Home extends Component {
             })
     }
 
-    getCategory(id) {
+    getCategory (id) {
         for (let i = 0; i < this.state.categories.length; i++) {
             if (this.state.categories[i].ID === id)
                 return this.state.categories[i].name
@@ -197,6 +198,21 @@ class Home extends Component {
 
     handleClose = () => {
         this.setState({speedDialOpen: false})
+    }
+
+    handleLogout = () => {
+        axios.post('/api/logout')
+            .then(r=>{
+                if (r.data.code === 0){
+                    Cookies.remove('goblog-session')
+                    this.setState({login:false,snackBarOpen:true,message: '退出成功'})
+                } else {
+                    this.setState({snackBarOpen:true,message: '错误:'+r.data.message})
+                }
+            })
+            .catch(()=>{
+                this.setState({snackBarOpen:true,message: '网络错误'})
+            })
     }
 
     addCategory = () => {
@@ -448,7 +464,12 @@ class Home extends Component {
                         open={this.state.speedDialOpen}
                     >
                         <SpeedDialAction
-                            icon={<CategoryIcon />}
+                            icon={<ExitToAppIcon/>}
+                            tooltipTitle="退出登录"
+                            onClick={this.handleLogout}
+                        />
+                        <SpeedDialAction
+                            icon={<CategoryIcon/>}
                             tooltipTitle="分类"
                             onClick={() => this.setState({dialogOpen: true, speedDialOpen: false})}
                         />
@@ -458,10 +479,6 @@ class Home extends Component {
                             onClick={() => this.props.history.push('/articleEditor')}
                         />
                     </SpeedDial>
-                    {/*{this.state.login &&*/}
-                    {/*<Button variant="fab" color="primary" aria-label="add" className={classes.addFAB} component={Link} to={"/articleEditor"}>*/}
-                    {/*<AddIcon />*/}
-                    {/*</Button>}*/}
                 </main>
             </div>
         )
