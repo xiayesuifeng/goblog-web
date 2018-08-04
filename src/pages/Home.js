@@ -36,6 +36,7 @@ import List from '@material-ui/core/List/List'
 import ListItem from '@material-ui/core/ListItem/ListItem'
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction/ListItemSecondaryAction'
 import InputAdornment from '@material-ui/core/InputAdornment/InputAdornment'
+import TuiEditorViewer from '../component/TuiEditorViewer'
 
 const styles = theme => ({
     root: {
@@ -150,18 +151,16 @@ class Home extends Component {
         axios.get(url)
             .then(r => {
                 if (r.data.code === 0) {
-                    this.setState({articles: []})
                     let articles = r.data.articles
                     for (let i = 0; i < articles.length; i++) {
-                        axios.get('/api/article/uuid/' + articles[i].Uuid + '/description')
+                        axios.get('/api/article/uuid/' + articles[i].Uuid + '/description_md')
                             .then(r => {
-                                let article
                                 if (r.data.code === 0) {
-                                    article = {...articles[i], desc: r.data.html}
+                                    articles[i] = {...articles[i], desc: r.data.markdown}
                                 } else {
-                                    article = {...articles[i], desc: ''}
+                                    articles[i] = {...articles[i], desc: ''}
                                 }
-                                this.setState({articles: [...this.state.articles, article]})
+                                this.setState({articles: articles})
                             })
                     }
                 }
@@ -424,7 +423,7 @@ class Home extends Component {
                                     subheader={article.CreatedAt}
                                 />
                                 <CardContent>
-                                    <div dangerouslySetInnerHTML={{__html: article.desc}}/>
+                                    <TuiEditorViewer value={article.desc}/>
                                 </CardContent>
                                 <CardActions className={classes.cardAction}>
                                     <Button size="small" color="primary" component={Link}
