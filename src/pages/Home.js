@@ -99,6 +99,7 @@ class Home extends Component {
         speedDialOpen: false,
         snackBarOpen: false,
         title: 'GoBlog',
+        useCategory: true,
         message: '',
         categories: [],
         tags: [],
@@ -131,9 +132,9 @@ class Home extends Component {
     componentWillMount () {
         this.setState({login: (Cookies.get('goblog-session') !== undefined)})
 
-        axios.get('/api/name')
+        axios.get('/api/info')
             .then(r => {
-                this.setState({title: r.data})
+                this.setState({title: r.data.name, useCategory: r.data.useCategory})
             })
         axios.get('/api/tag')
             .then(r => {
@@ -202,16 +203,16 @@ class Home extends Component {
 
     handleLogout = () => {
         axios.post('/api/logout')
-            .then(r=>{
-                if (r.data.code === 0){
+            .then(r => {
+                if (r.data.code === 0) {
                     Cookies.remove('goblog-session')
-                    this.setState({login:false,snackBarOpen:true,message: '退出成功'})
+                    this.setState({login: false, snackBarOpen: true, message: '退出成功'})
                 } else {
-                    this.setState({snackBarOpen:true,message: '错误:'+r.data.message})
+                    this.setState({snackBarOpen: true, message: '错误:' + r.data.message})
                 }
             })
-            .catch(()=>{
-                this.setState({snackBarOpen:true,message: '网络错误'})
+            .catch(() => {
+                this.setState({snackBarOpen: true, message: '网络错误'})
             })
     }
 
@@ -267,12 +268,8 @@ class Home extends Component {
             isTouch = 'ontouchstart' in document.documentElement
         }
 
-        const drawer = (
+        const categoryList = (
             <div>
-                <div className={classes.header}>
-                    <img src={logo} alt="logo" className={classes.logo}/>
-                    <Typography variant="title">{this.state.title}</Typography>
-                </div>
                 <Divider/>
                 <MenuList>
                     <MenuItem component={Link} to='/'>
@@ -287,6 +284,16 @@ class Home extends Component {
                         )
                     })}
                 </MenuList>
+            </div>
+        )
+
+        const drawer = (
+            <div>
+                <div className={classes.header}>
+                    <img src={logo} alt="logo" className={classes.logo}/>
+                    <Typography variant="title">{this.state.title}</Typography>
+                </div>
+                {this.state.useCategory && categoryList}
                 <Divider/>
                 <MenuList>
                     <MenuItem component={Link} to='/'>
@@ -442,9 +449,10 @@ class Home extends Component {
                                     <TuiEditorViewer value={article.desc}/>
                                 </CardContent>
                                 <CardActions className={classes.cardAction}>
+                                    {this.state.useCategory &&
                                     <Button size="small" color="primary" component={Link}
-                                            to={'/category/' + article.category_id}>归类于 {this.getCategory(article.category_id)}</Button>
-                                    <Button size="small" color="primary" className={classes.readArticle}
+                                            to={'/category/' + article.category_id}>归类于 {this.getCategory(article.category_id)}</Button>}
+                                    <Button size="small" color="primary" className={this.state.useCategory && classes.readArticle}
                                             component={Link} to={'/article/' + article.ID}>阅读全文</Button>
                                 </CardActions>
                             </Card>
@@ -468,11 +476,12 @@ class Home extends Component {
                             tooltipTitle="退出登录"
                             onClick={this.handleLogout}
                         />
+                        {this.state.useCategory &&
                         <SpeedDialAction
                             icon={<CategoryIcon/>}
                             tooltipTitle="分类"
                             onClick={() => this.setState({dialogOpen: true, speedDialOpen: false})}
-                        />
+                        />}
                         <SpeedDialAction
                             icon={<AddIcon/>}
                             tooltipTitle="添加"
