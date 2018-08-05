@@ -98,8 +98,8 @@ class Home extends Component {
         dialogOpen: false,
         speedDialOpen: false,
         snackBarOpen: false,
-        title: 'GoBlog',
-        useCategory: true,
+        title:window.localStorage.title,
+        useCategory:window.localStorage.useCategory !== 'false',
         message: '',
         categories: [],
         tags: [],
@@ -125,6 +125,7 @@ class Home extends Component {
             } else {
                 this.setState({tag: '0', category: 0})
             }
+
             this.getArticles(url)
         }
     }
@@ -132,10 +133,6 @@ class Home extends Component {
     componentWillMount () {
         this.setState({login: (Cookies.get('goblog-session') !== undefined)})
 
-        axios.get('/api/info')
-            .then(r => {
-                this.setState({title: r.data.name, useCategory: r.data.useCategory})
-            })
         axios.get('/api/tag')
             .then(r => {
                 if (r.data.code === 0)
@@ -268,24 +265,91 @@ class Home extends Component {
             isTouch = 'ontouchstart' in document.documentElement
         }
 
-        const categoryList = (
-            <div>
-                <Divider/>
-                <MenuList>
-                    <MenuItem component={Link} to='/'>
-                        <ListItemText inset primary="全部分类"/>
-                    </MenuItem>
-                    {this.state.categories.map((category) => {
-                        return (
-                            <MenuItem selected={this.state.category === category.ID} component={Link}
-                                      to={'/category/' + category.ID}>
-                                <ListItemText inset primary={category.name}/>
-                            </MenuItem>
-                        )
-                    })}
-                </MenuList>
-            </div>
-        )
+        let categoryList
+        let categoryDialog
+        if (this.state.useCategory) {
+            categoryList = (
+                <div>
+                    <Divider/>
+                    <MenuList>
+                        <MenuItem component={Link} to='/'>
+                            <ListItemText inset primary="全部分类"/>
+                        </MenuItem>
+                        {this.state.categories.map((category) => {
+                            return (
+                                <MenuItem selected={this.state.category === category.ID} component={Link}
+                                          to={'/category/' + category.ID}>
+                                    <ListItemText inset primary={category.name}/>
+                                </MenuItem>
+                            )
+                        })}
+                    </MenuList>
+                </div>
+            )
+
+            categoryDialog = (
+                <Dialog
+                    // fullScreen={fullScreen}
+                    open={this.state.dialogOpen}
+                    onClose={this.handleClose}
+                    aria-labelledby="dialog-title"
+                >
+                    <DialogTitle id="dialog-title">{'分类管理'}</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            id="category"
+                            label='分类名'
+                            type="text"
+                            value={this.state.addCategory}
+                            onChange={e => this.setState({addCategory: e.target.value})}
+                            margin="normal"
+                            InputProps={{
+                                endAdornment: <InputAdornment position="start">
+                                    {this.state.editID === -1 ?
+                                        <IconButton onClick={this.addCategory}>
+                                            <AddIcon/>
+                                        </IconButton>
+                                        :
+                                        <IconButton onClick={this.editCategory}>
+                                            <DoneIcon/>
+                                        </IconButton>
+                                    }
+                                </InputAdornment>,
+                            }}
+                        />
+                        <List>
+                            {this.state.categories.map(category => {
+                                    return (
+                                        <ListItem>
+                                            <ListItemText
+                                                primary={category.name}
+                                                secondary={'ID:' + category.ID}
+                                            />
+                                            <ListItemSecondaryAction>
+                                                <IconButton onClick={this.handleEdit(category)}>
+                                                    <EditIcon/>
+                                                </IconButton>
+                                                <IconButton onClick={this.delCategory(category.ID)}>
+                                                    <DeleteIcon/>
+                                                </IconButton>
+                                            </ListItemSecondaryAction>
+                                        </ListItem>
+                                    )
+                                }
+                            )}
+                        </List>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => this.setState({dialogOpen: false})} color="primary" autoFocus>
+                            关闭
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            )
+        } else {
+            categoryList = ''
+            categoryDialog = ''
+        }
 
         const drawer = (
             <div>
@@ -293,7 +357,7 @@ class Home extends Component {
                     <img src={logo} alt="logo" className={classes.logo}/>
                     <Typography variant="title">{this.state.title}</Typography>
                 </div>
-                {this.state.useCategory && categoryList}
+                {categoryList}
                 <Divider/>
                 <MenuList>
                     <MenuItem component={Link} to='/'>
@@ -308,66 +372,6 @@ class Home extends Component {
                     })}
                 </MenuList>
             </div>
-        )
-
-        const categoryDialog = (
-            <Dialog
-                // fullScreen={fullScreen}
-                open={this.state.dialogOpen}
-                onClose={this.handleClose}
-                aria-labelledby="dialog-title"
-            >
-                <DialogTitle id="dialog-title">{'分类管理'}</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        id="category"
-                        label='分类名'
-                        type="text"
-                        value={this.state.addCategory}
-                        onChange={e => this.setState({addCategory: e.target.value})}
-                        margin="normal"
-                        InputProps={{
-                            endAdornment: <InputAdornment position="start">
-                                {this.state.editID === -1 ?
-                                    <IconButton onClick={this.addCategory}>
-                                        <AddIcon/>
-                                    </IconButton>
-                                    :
-                                    <IconButton onClick={this.editCategory}>
-                                        <DoneIcon/>
-                                    </IconButton>
-                                }
-                            </InputAdornment>,
-                        }}
-                    />
-                    <List>
-                        {this.state.categories.map(category => {
-                                return (
-                                    <ListItem>
-                                        <ListItemText
-                                            primary={category.name}
-                                            secondary={'ID:' + category.ID}
-                                        />
-                                        <ListItemSecondaryAction>
-                                            <IconButton onClick={this.handleEdit(category)}>
-                                                <EditIcon/>
-                                            </IconButton>
-                                            <IconButton onClick={this.delCategory(category.ID)}>
-                                                <DeleteIcon/>
-                                            </IconButton>
-                                        </ListItemSecondaryAction>
-                                    </ListItem>
-                                )
-                            }
-                        )}
-                    </List>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => this.setState({dialogOpen: false})} color="primary" autoFocus>
-                        关闭
-                    </Button>
-                </DialogActions>
-            </Dialog>
         )
 
         return (
