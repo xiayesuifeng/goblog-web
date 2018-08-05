@@ -79,7 +79,8 @@ class ArticleEditor extends Component {
         category: 0,
         title: '',
         snackBarOpen: false,
-        message: ''
+        message: '',
+        useCategory: window.localStorage.useCategory !== 'false',
     }
 
     componentDidMount () {
@@ -129,10 +130,13 @@ class ArticleEditor extends Component {
         let id = this.props.match.params.id
         let data = {
             title: this.state.title,
-            category_id: this.state.category,
             tag: this.state.tag,
             context: this.state.editor.getValue()
         }
+
+        if (this.state.useCategory)
+            data = {...data,category_id: this.state.category}
+
         if (this.state.edit) {
             axios.put('/api/article/' + id, data)
                 .then(r => {
@@ -193,6 +197,7 @@ class ArticleEditor extends Component {
                 />
                 <Paper className={classes.editor}>
                     <div className={classes.info}>
+                        {this.state.useCategory &&
                         <TextField
                             select
                             label="分类"
@@ -211,7 +216,7 @@ class ArticleEditor extends Component {
                                     {category.name}
                                 </MenuItem>
                             ))}
-                        </TextField>
+                        </TextField>}
                         <TextField
                             label="标签"
                             margin="normal"
