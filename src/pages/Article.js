@@ -38,11 +38,11 @@ const styles = theme => ({
         flexDirection: 'column',
         [theme.breakpoints.up('md')]: {
             margin: theme.spacing.unit * 10,
-            minWidth:800,
+            minWidth: 800,
         },
         [theme.breakpoints.down('sm')]: {
-            margin:0,
-            width:'100%',
+            margin: 0,
+            width: '100%',
             height: '100%'
         },
     },
@@ -80,12 +80,13 @@ class Article extends Component {
     state = {
         article: {},
         category: '',
-        markdown:'',
+        markdown: '',
         open: false,
         hidden: false,
         snackBarOpen: false,
         message: '',
-        login: false
+        login: false,
+        useCategory: window.localStorage.useCategory !== 'false',
     }
 
     componentWillMount () {
@@ -98,11 +99,13 @@ class Article extends Component {
                             if (r.data.code === 0)
                                 this.setState({markdown: r.data.markdown})
                         })
-                    axios.get('/api/category/' + r.data.article.category_id)
-                        .then(r => {
-                            if (r.data.code === 0)
-                                this.setState({category: r.data.category.name})
-                        })
+                    if (this.state.useCategory) {
+                        axios.get('/api/category/' + r.data.article.category_id)
+                            .then(r => {
+                                if (r.data.code === 0)
+                                    this.setState({category: r.data.category.name})
+                            })
+                    }
                     this.setState({article: r.data.article})
                 }
             })
@@ -146,18 +149,18 @@ class Article extends Component {
         return (
             <div className={classes.root}>
                 <Hidden mdUp>
-                <AppBar>
-                    <Toolbar>
-                        <IconButton
-                            color="inherit"
-                            aria-label="open drawer"
-                            component={Link} to="/"
-                        >
-                            <ArrowBackIcon/>
-                        </IconButton>
-                        <Typography variant="title" color="inherit">{this.state.article.title}</Typography>
-                    </Toolbar>
-                </AppBar>
+                    <AppBar>
+                        <Toolbar>
+                            <IconButton
+                                color="inherit"
+                                aria-label="open drawer"
+                                component={Link} to="/"
+                            >
+                                <ArrowBackIcon/>
+                            </IconButton>
+                            <Typography variant="title" color="inherit">{this.state.article.title}</Typography>
+                        </Toolbar>
+                    </AppBar>
                 </Hidden>
                 <Hidden smDown>
                     <Tooltip id="tooltip-fab" title="返回首页">
@@ -193,7 +196,8 @@ class Article extends Component {
                                 <span>发布于 {this.state.article.CreatedAt}</span>
                             </div>
                             <div className={classes.info}>
-                                <span>归类于 {this.state.category?this.state.category:'已删除的分类'}</span>
+                                {this.state.useCategory ?
+                                    <span>归类于 {this.state.category ? this.state.category : '已删除的分类'}</span> : <span/>}
                                 <span>更新于 {this.state.article.UpdatedAt}</span>
                             </div>
                         </div>
@@ -203,30 +207,30 @@ class Article extends Component {
                     </div>
                 </Paper>
                 {this.state.login &&
-                    <SpeedDial
-                        ariaLabel="SpeedDial"
-                        className={classes.speedDial}
-                        hidden={this.state.hidden}
-                        icon={<SpeedDialIcon/>}
-                        onBlur={this.handleClose}
-                        onClick={this.handleClick}
-                        onClose={this.handleClose}
-                        onFocus={isTouch ? undefined : this.handleOpen}
-                        onMouseEnter={isTouch ? undefined : this.handleOpen}
-                        onMouseLeave={this.handleClose}
-                        open={this.state.open}
-                    >
-                        <SpeedDialAction
-                            icon={<DeleteIcon/>}
-                            tooltipTitle="删除"
-                            onClick={this.handleDelete}
-                        />
-                        <SpeedDialAction
-                            icon={<EditIcon/>}
-                            tooltipTitle="编辑"
-                            onClick={() => this.props.history.push('/articleEditor/' + this.props.match.params.id)}
-                        />
-                    </SpeedDial>}
+                <SpeedDial
+                    ariaLabel="SpeedDial"
+                    className={classes.speedDial}
+                    hidden={this.state.hidden}
+                    icon={<SpeedDialIcon/>}
+                    onBlur={this.handleClose}
+                    onClick={this.handleClick}
+                    onClose={this.handleClose}
+                    onFocus={isTouch ? undefined : this.handleOpen}
+                    onMouseEnter={isTouch ? undefined : this.handleOpen}
+                    onMouseLeave={this.handleClose}
+                    open={this.state.open}
+                >
+                    <SpeedDialAction
+                        icon={<DeleteIcon/>}
+                        tooltipTitle="删除"
+                        onClick={this.handleDelete}
+                    />
+                    <SpeedDialAction
+                        icon={<EditIcon/>}
+                        tooltipTitle="编辑"
+                        onClick={() => this.props.history.push('/articleEditor/' + this.props.match.params.id)}
+                    />
+                </SpeedDial>}
             </div>
         )
     }
