@@ -65,7 +65,9 @@ const styles = theme => ({
     },
     content: {
         flexGrow: 1,
+        height:'100vh',
         backgroundColor: theme.palette.background.default,
+        overflow:'auto'
     },
     card: {
         textAlign: 'left',
