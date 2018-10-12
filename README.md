@@ -2,6 +2,10 @@
 
 > 个人博客goblog前端
 
+[![license](https://img.shields.io/github/license/xiayesuifeng/goblog-web.svg)](https://gitlab.com/xiayesuifeng/goblog-web/blob/master/LICENSE) 
+
+# Move to gitlab [https://gitlab.com/xiayesuifeng/goblog-web](https://gitlab.com/xiayesuifeng/goblog-web)
+
 ## 后端
 
 [goblog](https://gitlab.com/xiayesuifeng/goblog.git)
